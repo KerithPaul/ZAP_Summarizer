@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Security Report #{{ report_id }}</title>
+    <style>
+        :root {
+            --high: #ff6b6b;
+            --medium: #ffd166;
+            --low: #06d6a0;
+            --informational: #4cc9f0;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 2rem; }
+        .header { text-align: center; margin-bottom: 2rem; border-bottom: 2px solid #333; padding-bottom: 1rem; }
+        .summary-card { background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .vulnerability-card {
+            border-left: 4px solid;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 0 8px 8px 0;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .severity-high { border-color: var(--high); }
+        .severity-medium { border-color: var(--medium); }
+        .severity-low { border-color: var(--low); }
+        .severity-informational { border-color: var(--informational); }
+        .chart-container { margin: 2rem 0; text-align: center; }
+        .chart { max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .risk-tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .risk-high { background: var(--high); color: white; }
+        .risk-medium { background: var(--medium); }
+        .risk-low { background: var(--low); }
+        .risk-info { background: var(--informational); color: white; }
+        .section-title {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+            color: #2b2d42;
+        }
+        .metadata-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        .metadata-table th, .metadata-table td {
+            border: 1px solid #ddd;
+            padding: 0.75rem;
+            text-align: left;
+        }
+        .metadata-table th {
+            background-color: #f2f2f2;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Security Assessment Report</h1>
+            <p>Report ID: {{ report_id }} | Generated: {{ timestamp }}</p>
+        </div>
+       
+        <!-- Executive Summary -->
+        <div class="summary-card">
+            <h2 class="section-title">Executive Summary</h2>
+            {% for paragraph in summary.split('\n') %}
+                <p>{{ paragraph }}</p>
+            {% endfor %}
+        </div>
+       
+        <!-- Visualizations -->
+        <div class="chart-container">
+            <h2 class="section-title">Risk Analysis</h2>
+            <img src="{{ charts.visualizations }}" class="chart">
+        </div>
+       
+        <!-- Metadata -->
+        {% if metadata %}
+        <div>
+            <h2 class="section-title">Scan Metadata</h2>
+            <table class="metadata-table">
+                {% for key, value in metadata.items() %}
+                <tr>
+                    <th>{{ key }}</th>
+                    <td>{{ value }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        {% endif %}
+       
+        <!-- Detailed Findings -->
+        <div>
+            <h2 class="section-title">Vulnerability Details</h2>
+            {% for alert in alerts %}
+            <div class="vulnerability-card severity-{{ alert.risk|lower }}">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3>{{ alert.title }}</h3>
+                    <span class="risk-tag risk-{{ alert.risk|lower }}">{{ alert.risk }}</span>
+                </div>
+               
+                <p><strong>Affected URL:</strong> {{ alert.url }}</p>
+                <p><strong>Confidence:</strong> {{ alert.confidence }}</p>
+               
+                <div style="margin-top: 1rem;">
+                    <h4>Business Impact</h4>
+                    <p>{{ alert.business_impact }}</p>
+                </div>
+               
+                <div style="margin-top: 1rem;">
+                    <h4>Technical Explanation</h4>
+                    <p>{{ alert.simple_explanation }}</p>
+                </div>
+               
+                <div style="margin-top: 1rem; background: #e8f4fc; padding: 1rem; border-radius: 4px;">
+                    <h4>Recommended Actions</h4>
+                    <p>{{ alert.simple_solution }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
