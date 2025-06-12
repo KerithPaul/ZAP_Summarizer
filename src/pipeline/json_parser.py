@@ -6,14 +6,14 @@ def parse_zap_json(json_content) -> dict:
     """
     results = {
         'summary': {},
-        'alerts': [], # Renamed from 'vulnerabilities_by_type' for consistency with previous output structure
-        'metadata': {} # Placeholder for any global metadata if found later
+        'alerts': [],
+        'metadata': {}
     }
 
     try:
         zap_report_data = json.loads(json_content)
 
-        # Extract Summary
+     
     
         if 'summary' in zap_report_data:
             summary_val = zap_report_data['summary']
@@ -25,34 +25,34 @@ def parse_zap_json(json_content) -> dict:
 
 
 
-                    
+
             if isinstance(summary_val, dict):
                 results['summary'] = summary_val
       
-        # Extract Vulnerabilities (Alerts)
+      
         if 'vulnerabilities_by_type' in zap_report_data and isinstance(zap_report_data['vulnerabilities_by_type'], list):
             for vuln_item in zap_report_data['vulnerabilities_by_type']:
-                # Mapping the JSON keys to a consistent output format
-                alert_name = vuln_item.get('alert_type') # This seems to be the alert name/title
+           
+                alert_name = vuln_item.get('alert_type') 
                 description = vuln_item.get('description')
                 solution = vuln_item.get('solution')
                 risk = vuln_item.get('risk')
-                count = vuln_item.get('count') # Number of instances for this alert type
-                affected_urls = vuln_item.get('affected_urls', []) # List of affected URLs
+                count = vuln_item.get('count') 
+                affected_urls = vuln_item.get('affected_urls', [])
 
                 results['alerts'].append({
                     'alertName': alert_name if alert_name else 'Untitled Alert',
                     'description': description if description else 'No description provided.',
                     'solution': solution if solution else 'No solution provided.',
                     'risk': risk if risk else 'Unknown',
-                    'count': count if count is not None else 0, # Ensure count is a number
+                    'count': count if count is not None else 0, 
                     'affected_urls': affected_urls
                 })
 
 
     except json.JSONDecodeError as e:
         print(f"Error decoding JSON: {e}")
-        # Consider returning an empty/error state or raising the exception
+      
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
 

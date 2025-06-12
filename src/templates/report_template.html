@@ -140,7 +140,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>ZAP Security Scan Report</h1>
+        <h1>Security Scan Report</h1>
         <div class="header-info">
             Report ID: <strong>{{ report_id }}</strong><br>
             Generated On: <strong>{{ timestamp }}</strong>
@@ -156,6 +156,12 @@
                 {% endfor %}
             {% else %}
                 <p>No overall summary data available.</p>
+            {% endif %}
+            {% if executive_summary %}
+                <div class="executive-summary">
+                    <h3>Executive Summary</h3>
+                    <p>{{ executive_summary }}</p>
+                </div>
             {% endif %}
         </div>
 
@@ -192,8 +198,8 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Data passed from Jinja2 context
-            const summaryData = {{ summary | default({}) | tojson }};
+        
+            const summaryData = {{summary | default({}) | tojson | safe}};
 
             const riskLabels = Object.keys(summaryData);
             const riskCounts = Object.values(summaryData);
@@ -284,7 +290,7 @@
                     }
                 });
             }
-        });
+});
     </script>
 </body>
 </html>

@@ -20,8 +20,8 @@ def generate_visualizations(alerts, report_id):
    
     # 2. Confidence Distribution (Bar Chart)
     plt.subplot(2, 1, 2)
-    conf_counts = pd.Series([alert['confidence'] for alert in alerts]).value_counts()
-    conf_colors = {'High': '#2a9d8f', 'Medium': '#e9c46a', 'Low': '#e76f51'}
+    conf_counts = pd.Series([alert.get('confidence', 'Unknown') for alert in alerts]).value_counts()
+    conf_colors = {'High': '#2a9d8f', 'Medium': '#e9c46a', 'Low': '#e76f51', 'Unknown': '#6c757d'}
     conf_colors = [conf_colors.get(c, '#6c757d') for c in conf_counts.index]
     plt.bar(conf_counts.index, conf_counts.values, color=conf_colors)
     plt.title('Confidence Level Distribution')
