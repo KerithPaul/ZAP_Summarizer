@@ -49,18 +49,20 @@ class ReportListener:
         # Fetch HTML from DB
         with self.conn.cursor() as cur:
             cur.execute(
-                "SELECT content FROM zap_reports WHERE id = %s",
+                "SELECT results FROM zap_results WHERE id = %s",
                 (report_id,)
             )
-            html_content = cur.fetchone()[0]
+            json_content = cur.fetchone()[0]
+            if isinstance(json_content,dict):
+                json_content = json.dumps(json_content)
        
         # Process report (PDF generation)
-        process_report(report_id, html_content)
+        process_report(report_id, json_content)
        
         # Mark as processed
         with self.conn.cursor() as cur:
             cur.execute(
-                "UPDATE zap_reports SET processed = TRUE WHERE id = %s",
+                "UPDATE zap_results SET processed = TRUE WHERE id = %s",
                 (report_id,)
             )
 

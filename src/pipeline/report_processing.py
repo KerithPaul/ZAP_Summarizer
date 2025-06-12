@@ -8,22 +8,29 @@ from src.config import ollama_url, ollama_model
 def summarize_with_ollama(alerts):
     """Generate executive summary using Ollama-Mistral"""
     prompt = f"""
-    You are a security analyst summarizing vulnerability scan results for non-technical executives.
-    Below are security alerts found during scanning:
-   
+
     {json.dumps(alerts, indent=2)}
    
-    Create a concise executive summary covering:
-    1. Overall risk posture (high/medium/low)
-    2. Key business impacts
-    3. Recommended action priorities
-    4. Technical summary in simple terms
-   
-    Structure your response as:
-    [Overall Risk Assessment]
-    [Business Impact Analysis]
-    [Priority Recommendations]
-    [Simple Technical Explanation]
+    Based on the provided Report Data, generate a summary report adhering to the following structure and guidelines:
+    Overall Scan Summary:
+    * State the total number of distinct alert types found.
+    * Provide a clear breakdown of alerts by risk level (e.g., "X Low, Y Informational").
+    Key Findings / Top Alerts:
+    * For each distinct alert type identified in the 'alerts' list:
+    * State the 'alertName' and its associated 'risk' level.
+    * Mention the 'count' of instances found for this specific alert type.
+    * Provide a very brief, 1-2 sentence summary of the 'description' to explain the vulnerability.
+    * Provide a very brief, 1-2 sentence summary of the 'solution' for remediation.
+    * Indicate if there are affected URLs (e.g., "affecting X URLs" or "affecting URLs such as Y"). Do not list all URLs if there are many; summarize or pick a few examples.
+    Conclusion/Recommendations (Optional, if data allows for inference):
+    * Provide a high-level statement about the overall security posture implied by this report.
+    * If appropriate, suggest general next steps for addressing identified issues.
+    Formatting Guidelines:
+    * Use clear headings and bullet points for readability.
+    * Keep all summaries extremely concise and to the point.
+    * Maintain a professional, objective, and analytical tone.
+    * Avoid conversational language, intros, or outros like "Here is your summary:" or "I hope this helps." Just provide the summary content.
+
     """
    
     response = requests.post(
@@ -45,15 +52,31 @@ def generate_simplified_solutions(alerts):
         prompt = f"""
         Explain this security vulnerability to a non-technical audience and provide a simple solution:
        
-        Title: {alert.get('title', '')}
+        alert_type: {alert.get('title', '')}
         Risk: {alert.get('risk', '')}
-        Description: {alert.get('description', '')[:500]}
-        Technical Solution: {alert.get('solution', '')[:500]}
+        description: {alert.get('description', '')[:500]}
+        solution: {alert.get('solution', '')[:500]}
        
-        Structure your response as:
-        [Simple Vulnerability Explanation]
-        [Business Impact]
-        [Actionable Solution Steps]
+        Based on the provided Report Data, generate a summary report adhering to the following structure and guidelines:
+        Overall Scan Summary:
+        * State the total number of distinct alert types found.
+        * Provide a clear breakdown of alerts by risk level (e.g., "X Low, Y Informational").
+        Key Findings / Top Alerts:
+        * For each distinct alert type identified in the 'alerts' list:
+        * State the 'alertName' and its associated 'risk' level.
+        * Mention the 'count' of instances found for this specific alert type.
+        * Provide a very brief, 1-2 sentence summary of the 'description' to explain the vulnerability.
+        * Provide a very brief, 1-2 sentence summary of the 'solution' for remediation.
+        * Indicate if there are affected URLs (e.g., "affecting X URLs" or "affecting URLs such as Y"). Do not list all URLs if there are many; summarize or pick a few examples.
+        Conclusion/Recommendations (Optional, if data allows for inference):
+        * Provide a high-level statement about the overall security posture implied by this report.
+        * If appropriate, suggest general next steps for addressing identified issues.
+        Formatting Guidelines:
+        * Use clear headings and bullet points for readability.
+        * Keep all summaries extremely concise and to the point.
+        * Maintain a professional, objective, and analytical tone.
+        * Avoid conversational language, intros, or outros like "Here is your summary:" or "I hope this helps." Just provide the summary content.
+
         """
        
         response = requests.post(

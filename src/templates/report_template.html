@@ -1,133 +1,290 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Security Report #{{ report_id }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZAP Scan Report Summary - {{ report_id }}</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root {
-            --high: #ff6b6b;
-            --medium: #ffd166;
-            --low: #06d6a0;
-            --informational: #4cc9f0;
+        /* Basic Styling for the Report */
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 20px;
+            background-color: #f4f4f4;
         }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; }
-        .container { max-width: 1000px; margin: 0 auto; padding: 2rem; }
-        .header { text-align: center; margin-bottom: 2rem; border-bottom: 2px solid #333; padding-bottom: 1rem; }
-        .summary-card { background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .vulnerability-card {
-            border-left: 4px solid;
-            padding: 1rem;
-            margin: 1.5rem 0;
-            border-radius: 0 8px 8px 0;
-            background: white;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-        .severity-high { border-color: var(--high); }
-        .severity-medium { border-color: var(--medium); }
-        .severity-low { border-color: var(--low); }
-        .severity-informational { border-color: var(--informational); }
-        .chart-container { margin: 2rem 0; text-align: center; }
-        .chart { max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .risk-tag {
+        h1 {
+            color: #0056b3;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header-info {
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        /* Summary Section Styling */
+        .summary-section {
+            background-color: #e9e9e9;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .summary-section h2 {
+            color: #333;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .summary-item {
             display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
+            margin: 0 15px;
             font-weight: bold;
-            text-transform: uppercase;
-        }
-        .risk-high { background: var(--high); color: white; }
-        .risk-medium { background: var(--medium); }
-        .risk-low { background: var(--low); }
-        .risk-info { background: var(--informational); color: white; }
-        .section-title {
-            border-bottom: 1px solid #eee;
-            padding-bottom: 0.5rem;
-            margin-top: 2rem;
-            color: #2b2d42;
-        }
-        .metadata-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 1rem 0;
-        }
-        .metadata-table th, .metadata-table td {
+            font-size: 1.1em;
+            padding: 5px 10px;
+            border-radius: 3px;
+            background-color: #fff;
             border: 1px solid #ddd;
-            padding: 0.75rem;
-            text-align: left;
         }
-        .metadata-table th {
-            background-color: #f2f2f2;
-            font-weight: 600;
+        /* Specific summary item colors based on common risk colors */
+        .summary-item.low { background-color: #d4edda; border-color: #28a745; color: #155724; } /* Light Green */
+        .summary-item.informational { background-color: #d1ecf1; border-color: #17a2b8; color: #0c5460; } /* Light Blue */
+        .summary-item.medium { background-color: #ffeeba; border-color: #ffc107; color: #856404; } /* Light Orange/Yellow */
+        .summary-item.high { background-color: #f8d7da; border-color: #dc3545; color: #721c24; } /* Light Red */
+
+        /* Chart Specific Styling */
+        .chart-container {
+            width: 80%; /* Adjust width as needed */
+            max-width: 600px; /* Max width for larger screens */
+            margin: 20px auto;
+            height: 350px; /* Fixed height for the canvas */
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Alerts Section Styling */
+        .alerts-heading {
+            color: #0056b3;
+            text-align: center;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+        .alert-section {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            background-color: #fafafa;
+        }
+        .alert-section h2 {
+            margin-top: 0;
+            font-size: 1.4em;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px dashed #eee;
+        }
+        .alert-section p {
+            margin-bottom: 8px;
+        }
+        .alert-section strong {
+            color: #555;
+        }
+        .alert-section ul {
+            list-style-type: disc;
+            margin-left: 20px;
+            padding-left: 0;
+        }
+        .alert-section li {
+            margin-bottom: 4px;
+        }
+
+        /* Risk-specific text colors */
+        .risk-Low { color: #28a745; } /* Green */
+        .risk-Informational { color: #17a2b8; } /* Blue */
+        .risk-Medium { color: #ffc107; } /* Orange */
+        .risk-High { color: #dc3545; } /* Red */
+        .risk-Unknown { color: #6c757d; } /* Grey */
+
+        .no-alerts {
+            text-align: center;
+            color: #777;
+            font-style: italic;
+            padding: 20px;
+            background-color: #ffe9e9;
+            border: 1px dashed #f00;
+            border-radius: 5px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 0.85em;
+            color: #777;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>Security Assessment Report</h1>
-            <p>Report ID: {{ report_id }} | Generated: {{ timestamp }}</p>
+        <h1>ZAP Security Scan Report</h1>
+        <div class="header-info">
+            Report ID: <strong>{{ report_id }}</strong><br>
+            Generated On: <strong>{{ timestamp }}</strong>
+            {% if metadata.scanned_url %}<br>Scanned URL: <strong>{{ metadata.scanned_url }}</strong>{% endif %}
+            {% if metadata.scanner_version %}<br>Scanner: <strong>{{ metadata.scanner_version }}</strong>{% endif %}
         </div>
-       
-        <!-- Executive Summary -->
-        <div class="summary-card">
-            <h2 class="section-title">Executive Summary</h2>
-            {% for paragraph in summary.split('\n') %}
-                <p>{{ paragraph }}</p>
-            {% endfor %}
-        </div>
-       
-        <!-- Visualizations -->
-        <div class="chart-container">
-            <h2 class="section-title">Risk Analysis</h2>
-            <img src="{{ charts.visualizations }}" class="chart">
-        </div>
-       
-        <!-- Metadata -->
-        {% if metadata %}
-        <div>
-            <h2 class="section-title">Scan Metadata</h2>
-            <table class="metadata-table">
-                {% for key, value in metadata.items() %}
-                <tr>
-                    <th>{{ key }}</th>
-                    <td>{{ value }}</td>
-                </tr>
+
+        <div class="summary-section">
+            <h2>Overall Scan Summary</h2>
+            {% if summary %}
+                {% for risk_level, count in summary.items() %}
+                    <span class="summary-item {{ risk_level | lower }}">{{ risk_level }}: {{ count }}</span>
                 {% endfor %}
-            </table>
+            {% else %}
+                <p>No overall summary data available.</p>
+            {% endif %}
         </div>
-        {% endif %}
-       
-        <!-- Detailed Findings -->
-        <div>
-            <h2 class="section-title">Vulnerability Details</h2>
+
+        <h2 class="alerts-heading">Threats by Risk Level Graph</h2>
+        <div class="chart-container">
+            <canvas id="riskLevelChart"></canvas>
+        </div>
+
+        <h2 class="alerts-heading">Detailed Alerts</h2>
+        {% if alerts %}
             {% for alert in alerts %}
-            <div class="vulnerability-card severity-{{ alert.risk|lower }}">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3>{{ alert.title }}</h3>
-                    <span class="risk-tag risk-{{ alert.risk|lower }}">{{ alert.risk }}</span>
-                </div>
-               
-                <p><strong>Affected URL:</strong> {{ alert.url }}</p>
-                <p><strong>Confidence:</strong> {{ alert.confidence }}</p>
-               
-                <div style="margin-top: 1rem;">
-                    <h4>Business Impact</h4>
-                    <p>{{ alert.business_impact }}</p>
-                </div>
-               
-                <div style="margin-top: 1rem;">
-                    <h4>Technical Explanation</h4>
-                    <p>{{ alert.simple_explanation }}</p>
-                </div>
-               
-                <div style="margin-top: 1rem; background: #e8f4fc; padding: 1rem; border-radius: 4px;">
-                    <h4>Recommended Actions</h4>
-                    <p>{{ alert.simple_solution }}</p>
-                </div>
+            <div class="alert-section">
+                <h2 class="risk-{{ alert.risk | default('Unknown') | replace(' ', '') }}">{{ alert.alertName }} <small>(Risk: {{ alert.risk | default('Unknown') }}, Instances: {{ alert.count | default(0) }})</small></h2>
+                <p><strong>Description:</strong> {{ alert.description | default('No description provided.') }}</p>
+                <p><strong>Solution:</strong> {{ alert.solution | default('No solution provided.') }}</p>
+                {% if alert.affected_urls %}
+                    <p><strong>Affected URLs:</strong></p>
+                    <ul>
+                    {% for url in alert.affected_urls %}
+                        <li>{{ url }}</li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
             </div>
             {% endfor %}
+        {% else %}
+            <p class="no-alerts">No alerts found in the report.</p>
+        {% endif %}
+
+        <div class="footer">
+            <p>Report automatically generated using ZAP, Ollama (Mistral), Jinja2, and Chart.js.</p>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Data passed from Jinja2 context
+            const summaryData = {{ summary | default({}) | tojson }};
+
+            const riskLabels = Object.keys(summaryData);
+            const riskCounts = Object.values(summaryData);
+
+            const backgroundColors = {
+                'Low': 'rgba(92, 184, 92, 0.7)',       // Green
+                'Informational': 'rgba(91, 192, 222, 0.7)', // Blue
+                'Medium': 'rgba(240, 173, 78, 0.7)',  // Orange
+                'High': 'rgba(217, 83, 79, 0.7)',     // Red
+                'Critical': 'rgba(128, 0, 0, 0.7)',   // Dark Red
+                'Unknown': 'rgba(150, 150, 150, 0.7)' // Grey
+            };
+            const borderColors = {
+                'Low': 'rgba(92, 184, 92, 1)',
+                'Informational': 'rgba(91, 192, 222, 1)',
+                'Medium': 'rgba(240, 173, 78, 1)',
+                'High': 'rgba(217, 83, 79, 1)',
+                'Critical': 'rgba(128, 0, 0, 1)',
+                'Unknown': 'rgba(150, 150, 150, 1)'
+            };
+
+            const chartBgColors = riskLabels.map(label => backgroundColors[label] || backgroundColors['Unknown']);
+            const chartBorderColors = riskLabels.map(label => borderColors[label] || borderColors['Unknown']);
+
+
+            const ctxRiskLevel = document.getElementById('riskLevelChart');
+            if (ctxRiskLevel) {
+                new Chart(ctxRiskLevel, {
+                    type: 'bar', // or 'pie', 'doughnut'
+                    data: {
+                        labels: riskLabels,
+                        datasets: [{
+                            label: 'Number of Threat Instances',
+                            data: riskCounts,
+                            backgroundColor: chartBgColors,
+                            borderColor: chartBorderColors,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Threats by Risk Level',
+                                font: {
+                                    size: 18,
+                                    weight: 'bold'
+                                }
+                            },
+                            legend: {
+                                display: false // No need for legend if labels are on bars
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed.y !== null) {
+                                            label += context.parsed.y;
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0 // Ensure whole numbers for counts
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Count of Alerts'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Risk Level'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>
