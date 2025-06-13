@@ -1,11 +1,8 @@
 import datetime
-# import weasyprint # You can remove this if html2pdf is no longer needed
 import traceback
 import os
 from jinja2 import Environment, FileSystemLoader
 
-# Assuming src.config, src.pipeline.json_parser, src.pipeline.report_processing,
-# and src.pipeline.visualization_generator are correctly imported and working.
 from src.config import output_dir
 from src.pipeline.json_parser import parse_zap_json 
 from src.pipeline.report_processing import summarize_with_ollama, generate_simplified_solutions
@@ -34,8 +31,7 @@ def process_report(report_id, json_content):
             summary=parsed_data.get('summary', {}),
             alerts=simplified_alerts,
             metadata=parsed_data.get('metadata', {}),
-            charts=charts,
-            executive_summary=executive_summary
+            charts=charts
             )
 
         # 6. Save HTML file instead of generating PDF

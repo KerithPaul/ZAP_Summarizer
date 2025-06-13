@@ -157,12 +157,6 @@
             {% else %}
                 <p>No overall summary data available.</p>
             {% endif %}
-            {% if executive_summary %}
-                <div class="executive-summary">
-                    <h3>Executive Summary</h3>
-                    <p>{{ executive_summary }}</p>
-                </div>
-            {% endif %}
         </div>
 
         <h2 class="alerts-heading">Threats by Risk Level Graph</h2>
@@ -199,8 +193,8 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
         
-            const summaryData = {{summary | default({}) | tojson | safe}};
-
+            const summaryData = "{{ summary | default({}) | tojson | safe }}";
+            const summaryDataObj = JSON.parse(summaryData);
             const riskLabels = Object.keys(summaryData);
             const riskCounts = Object.values(summaryData);
 
